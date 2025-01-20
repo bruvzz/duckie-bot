@@ -12,7 +12,7 @@ module.exports = {
    */
   callback: async (client, interaction) => {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply();
 
       const botUsername = "bruvzz";
       const botRepository = "duckie-bot";
