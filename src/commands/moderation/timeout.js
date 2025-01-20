@@ -6,19 +6,21 @@ const {
   EmbedBuilder,
 } = require("discord.js");
 const ms = require("ms");
+const fs = require("fs");
+const path = require("path");
+
+const logChannelsPath = path.join(__dirname, "../logChannels.json");
 
 module.exports = {
   /**
-   *
    * @param {Client} client
    * @param {Interaction} interaction
    */
-
   callback: async (client, interaction) => {
     const mentionable = interaction.options.get("target-user").value;
-    const duration = interaction.options.get("duration").value; // 1d, 1 day, 1s 5s, 5m
+    const duration = interaction.options.get("duration").value;
     const reason =
-      interaction.options.get("reason")?.value || "No reason provided";
+      interaction.options.get("reason")?.value || "N/A";
 
     await interaction.deferReply();
 
@@ -40,7 +42,7 @@ module.exports = {
         },
         {
           name: "Duration:",
-          value: `${prettyMs(msDuration, {verbose: true,})}`,
+          value: `${prettyMs(msDuration, { verbose: true })}`,
           inline: true,
         },
         {
@@ -54,7 +56,7 @@ module.exports = {
           inline: true,
         }
       );
-    
+
     if (!targetUser) {
       await interaction.editReply("That user doesn't exist in this server.");
       return;
@@ -77,9 +79,9 @@ module.exports = {
       return;
     }
 
-    const targetUserRolePosition = targetUser.roles.highest.position; // Highest role of the target user
-    const requestUserRolePosition = interaction.member.roles.highest.position; // Highest role of the user running the cmd
-    const botRolePosition = interaction.guild.members.me.roles.highest.position; // Highest role of the bot
+    const targetUserRolePosition = targetUser.roles.highest.position;
+    const requestUserRolePosition = interaction.member.roles.highest.position;
+    const botRolePosition = interaction.guild.members.me.roles.highest.position;
 
     if (targetUserRolePosition >= requestUserRolePosition) {
       await interaction.editReply(
@@ -95,9 +97,7 @@ module.exports = {
       return;
     }
 
-    // Timeout the user
     try {
-
       if (targetUser.isCommunicationDisabled()) {
         await targetUser.timeout(msDuration, reason);
         await interaction.editReply({ embeds: [embed] });
@@ -106,6 +106,25 @@ module.exports = {
 
       await targetUser.timeout(msDuration, reason);
       await interaction.editReply({ embeds: [embed] });
+
+      let logChannels = {};
+      if (fs.existsSync(logChannelsPath)) {
+        logChannels = JSON.parse(fs.readFileSync(logChannelsPath, "utf-8"));
+      }
+
+      const logChannelId = logChannels[interaction.guild.id];
+      if (logChannelId) {
+        const logChannel = interaction.guild.channels.cache.get(logChannelId);
+        if (logChannel) {
+          const logEmbed = new EmbedBuilder(embed.data)
+            .setTitle("Timeout Log")
+            .setTimestamp();
+
+          await logChannel.send({ embeds: [logEmbed] });
+        } else {
+          console.error("Log channel not found.");
+        }
+      }
     } catch (error) {
       console.log(`There was an error when timing out: ${error}`);
     }
