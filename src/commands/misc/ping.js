@@ -1,4 +1,8 @@
-const { Client, Interaction, EmbedBuilder } = require("discord.js");
+const { 
+  Client, 
+  Interaction, 
+  EmbedBuilder,
+ } = require("discord.js");
 
 module.exports = {
   /**
@@ -10,7 +14,7 @@ module.exports = {
     try {
       const start = Date.now();
 
-      await interaction.deferReply();
+      await interaction.deferReply({ ephemeral: true });
 
       const reply = await interaction.fetchReply();
       const end = Date.now();
@@ -37,6 +41,7 @@ module.exports = {
       console.error("Error handling ping command:", error);
       await interaction.editReply({
         content: "An error occurred while trying to calculate the ping.",
+        ephemeral: true,
       });
     }
   },
