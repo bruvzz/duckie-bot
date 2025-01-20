@@ -22,6 +22,7 @@ module.exports = {
             const categories = {
                 general: [
                     { name: "avatar", description: "Get the avatar of a user" },
+                    { name: "github", description: "Get the GitHub profile and repository of the bot" },
                     { name: "help", description: "Shows this help message" },
                     { name: "membercount", description: "Get the member count of a server" },
                     { name: "ping", description: "Check the bot's and API latency" },
