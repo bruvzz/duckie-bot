@@ -1,14 +1,24 @@
 Old Discord Bot that I may or may not update later.
 
 # Changelog:
-*Updated as of:* `December 15, 2024 // 12:20 PM [EDT]`
+*Updated as of:* `January 20, 2024 // 12:20 AM [EDT]`
+- **src/**
+   - Updated [index.js](https://github.com/bruvzz/duckie-bot/commit/db66d353e1c736005a1d5cd0d6e287135c984651)
+
+- **src/commands/**
+  - Created [logChannels.json](https://github.com/bruvzz/duckie-bot/blob/main/src/commands/logChannels.json)
+    > ^ This is important if you want to be able to log moderation commands!
+
+- **src/commands/fun/**
+   - Created [roblox-username.js](https://github.com/bruvzz/duckie-bot/blob/main/src/commands/fun/roblox-username.js)
+
 - **src/commands/misc/**
-   - Updated [help.js](https://github.com/bruvzz/duckie-bot/commit/4c8f839784eb41c57d7a144ef35c3aaac1d806a9)
-   - Updated [ping.js](https://github.com/bruvzz/duckie-bot/commit/04805b6bd2994c15bc03a92f3916a0980888ae74)
-   - Updated [weao.js](https://github.com/bruvzz/duckie-bot/commit/2b793416f0dcf38c04b4f6852cc0fb0b91d2b95e)
+   - Created [github.js](https://github.com/bruvzz/duckie-bot/blob/main/src/commands/misc/github.js)
+   - Updated [help.js](https://github.com/bruvzz/duckie-bot/commits/main/src/commands/misc/help.js?since=2025-01-19&until=2025-01-20)
 
 - **src/commands/moderation**
-   - Created [moderate-nickname.js](https://github.com/bruvzz/duckie-bot/blob/main/src/commands/moderation/moderate-nickname.js)
+   - Updated all of moderation commands
+   - Created [set-logs.js](https://github.com/bruvzz/duckie-bot/blob/main/src/commands/moderation/set_logs.js)
 
 > [!IMPORTANT]
 This bot uses discord.js 14.11.0
