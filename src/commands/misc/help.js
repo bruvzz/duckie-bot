@@ -47,6 +47,7 @@ module.exports = {
                 ],
                 fun: [
                     { name: "rps", description: "Play Rock Paper Scissors" },
+                    { name: "roblox-username", description: "Get detailed information about a Roblox user by their username" },
                 ],
             };
 
