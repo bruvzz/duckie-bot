@@ -5,6 +5,10 @@ const {
   PermissionFlagsBits,
   EmbedBuilder,
 } = require("discord.js");
+const fs = require("fs");
+const path = require("path");
+
+const logChannelsPath = path.join(__dirname, "../logChannels.json");
 
 module.exports = {
   /**
@@ -12,15 +16,19 @@ module.exports = {
    * @param {Client} client
    * @param {Interaction} interaction
    */
-
   callback: async (client, interaction) => {
     const targetUserId = interaction.options.get("target-user").value;
     const reason =
-      interaction.options.get("reason")?.value || "No reason provided";
+      interaction.options.get("reason")?.value || "N/A";
 
     await interaction.deferReply();
 
-    const targetUser = await interaction.guild.members.fetch(targetUserId);
+    const targetUser = await interaction.guild.members.fetch(targetUserId).catch(() => null);
+
+    if (!targetUser) {
+      await interaction.editReply("That user doesn't exist in this server.");
+      return;
+    }
 
     const embed = new EmbedBuilder()
       .setTitle("Success")
@@ -45,11 +53,6 @@ module.exports = {
         }
       );
 
-    if (!targetUser) {
-      await interaction.editReply("That user doesn't exist in this server.");
-      return;
-    }
-
     if (targetUser.id === interaction.guild.ownerId) {
       await interaction.editReply(
         "You can't kick that user because they're the server owner."
@@ -57,9 +60,9 @@ module.exports = {
       return;
     }
 
-    const targetUserRolePosition = targetUser.roles.highest.position; // Highest role of the target user
-    const requestUserRolePosition = interaction.member.roles.highest.position; // Highest role of the user running the cmd
-    const botRolePosition = interaction.guild.members.me.roles.highest.position; // Highest role of the bot
+    const targetUserRolePosition = targetUser.roles.highest.position;
+    const requestUserRolePosition = interaction.member.roles.highest.position;
+    const botRolePosition = interaction.guild.members.me.roles.highest.position;
 
     if (targetUserRolePosition >= requestUserRolePosition) {
       await interaction.editReply(
@@ -75,12 +78,31 @@ module.exports = {
       return;
     }
 
-    // Kick the targetUser
     try {
       await targetUser.kick({ reason });
       await interaction.editReply({ embeds: [embed] });
+
+      let logChannels = {};
+      if (fs.existsSync(logChannelsPath)) {
+        logChannels = JSON.parse(fs.readFileSync(logChannelsPath, "utf-8"));
+      }
+
+      const logChannelId = logChannels[interaction.guild.id];
+      if (logChannelId) {
+        const logChannel = interaction.guild.channels.cache.get(logChannelId);
+        if (logChannel) {
+          const logEmbed = new EmbedBuilder(embed.data)
+            .setTitle("Kick Log")
+            .setTimestamp();
+
+          await logChannel.send({ embeds: [logEmbed] });
+        } else {
+          console.error("Log channel not found.");
+        }
+      }
     } catch (error) {
       console.log(`There was an error when kicking: ${error}`);
+      await interaction.editReply("An error occurred while trying to kick the user.");
     }
   },
 
