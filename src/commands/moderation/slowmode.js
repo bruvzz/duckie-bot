@@ -1,14 +1,17 @@
-const {
-    Client,
-    Interaction,
-    ApplicationCommandOptionType,
-    PermissionFlagsBits,
+const { 
+    Client, 
+    Interaction, 
+    ApplicationCommandOptionType, 
+    PermissionFlagsBits, 
     EmbedBuilder,
-} = require("discord.js");
+ } = require("discord.js");
+const fs = require("fs");
+const path = require("path");
+
+const logChannelsPath = path.join(__dirname, "../logChannels.json");
 
 module.exports = {
     /**
-     *
      * @param {Client} client
      * @param {Interaction} interaction
      */
@@ -46,6 +49,31 @@ module.exports = {
                 .setTimestamp();
 
             await interaction.editReply({ embeds: [embed] });
+
+            let logChannels = {};
+            if (fs.existsSync(logChannelsPath)) {
+                logChannels = JSON.parse(fs.readFileSync(logChannelsPath, "utf-8"));
+            }
+
+            const logChannelId = logChannels[interaction.guild.id];
+            if (logChannelId) {
+                const logChannel = interaction.guild.channels.cache.get(logChannelId);
+                if (logChannel) {
+                    const logEmbed = new EmbedBuilder()
+                        .setColor("#4ea554")
+                        .setTitle("Slowmode Change Log")
+                        .setDescription(
+                            `**Channel:** <#${channel.id}>\n` +
+                            `**Action:** Slowmode set to **${duration} ${durationText}**\n` +
+                            `**Moderator:** <@${interaction.user.id}> (${interaction.user.id})`
+                        )
+                        .setTimestamp();
+
+                    await logChannel.send({ embeds: [logEmbed] });
+                } else {
+                    console.error("Log channel not found.");
+                }
+            }
         } catch (error) {
             console.error("Error setting slowmode:", error);
             await interaction.editReply("An error occurred while setting the slowmode.");
