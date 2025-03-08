@@ -57,7 +57,7 @@ const monitorHashUpdates = async () => {
         .setTitle("New Roblox Deployment Detected")
         .setColor("#4ea554")
         .setDescription(
-          `**This is a future build and is not out yet.**\nA new version deployment has been released:\n\n**Hash:** \`${newFutureHash}\``
+          `**This is a future build and is not out yet.**\nA new version deployment has been released:\n\n**Hash:** \`${newFutureHash}\`\n**Download:** [Here](https://rdd.weao.xyz/?channel=LIVE&binaryType=WindowsPlayer&version=${newFutureHash})`
         )
         .setTimestamp();
 
