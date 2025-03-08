@@ -9,6 +9,7 @@ const fs = require("fs");
 const path = require("path");
 
 const logChannelsPath = path.join(__dirname, "../logChannels.json");
+const logsFilePath = path.join(__dirname, "../modlogs.json");
 
 module.exports = {
     /**
@@ -33,7 +34,7 @@ module.exports = {
             }
 
             const userId = interaction.options.getString("userid");
-            const reason = interaction.options.getString("reason") || "No reason provided";
+            const reason = interaction.options.getString("reason") || "N/A";
 
             const user = await client.users.fetch(userId).catch(() => null);
             const targetMember = await interaction.guild.members.fetch(userId).catch(() => null);
@@ -90,6 +91,23 @@ module.exports = {
                     console.error("Log channel not found.");
                 }
             }
+
+            let modLogs = {};
+            if (fs.existsSync(logsFilePath)) {
+                const data = fs.readFileSync(logsFilePath);
+                modLogs = JSON.parse(data);
+            }
+                          
+            if (!modLogs[targetUser.id]) modLogs[targetUser.id] = [];
+                          
+                modLogs[targetUser.id].push({
+                    type: "Moderated-Nickname",
+                    reason: reason,
+                    moderator: interaction.user.id,
+                    timestamp: Math.floor(Date.now() / 1000),
+                });
+                          
+            fs.writeFileSync(logsFilePath, JSON.stringify(modLogs, null, 2));
         } catch (error) {
             console.error("Error moderating nickname:", error);
             await interaction.reply({
