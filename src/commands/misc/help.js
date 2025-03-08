@@ -22,13 +22,17 @@ module.exports = {
             const categories = {
                 general: [
                     { name: "avatar", description: "Get the avatar of a user" },
+                    { name: "faq", description: "Get frequently asked questions and answers on Submarine Services" },
+                    { name: "getkey", description: "Get special information on Submarine Services" },
                     { name: "github", description: "Get the GitHub profile and repository of the bot" },
                     { name: "help", description: "Shows this help message" },
                     { name: "membercount", description: "Get the member count of a server" },
                     { name: "ping", description: "Check the bot's and API latency" },
                     { name: "roles", description: "Displays a list of all roles in the server" },
                     { name: "serverinfo", description: "Displays information about the current server" },
+                    { name: "staff-leave", description: "Submit a staff leave request" },
                     { name: "uptime", description: "Get the bot's current uptime" },
+                    { name: "vouch", description: "Submit a vouch for someone you've helped" },
                     { name: "weao", description: "Get the list of Roblox Windows Exploits" },
                     { name: "whois", description: "Get information about a user" },
                     { name: "windows", description: "Get the list of Roblox Windows Versions" },
@@ -36,18 +40,24 @@ module.exports = {
                 moderation: [
                     { name: "ban", description: "Ban a member from the server" },
                     { name: "kick", description: "Kick a member from the server" },
+                    { name: "lock", description: "Locks a channel by denying send message permissions for a specific role" },
                     { name: "moderate-nickname", description: "Moderates a person's username using their User ID" },
+                    { name: "modlogs", description: "View moderation history of a user" },
+                    { name: "nuke", description: "Nukes a channel (deletes & recreates it with the same settings)" },
                     { name: "purge", description: "Delete messages in the channel" },
                     { name: "set-logs", description: "Set the channel where moderation logs will be sent" },
                     { name: "slowmode", description: "Set a slowmode for a channel" },
                     { name: "timeout", description: "Timeout a user" },
                     { name: "toggle-role", description: "Toggle a server role for a user by their User ID" },
                     { name: "unban", description: "Unban a member from the server" },
+                    { name: "unlock", description: "Unlocks a channel by restoring send message permissions for a specific role" },
                     { name: "untimeout", description: "UnTimeout a user" },
+                    { name: "warn", description: "Warn a user for inappropriate behavior" },
                 ],
                 fun: [
                     { name: "rps", description: "Play Rock Paper Scissors" },
                     { name: "roblox-username", description: "Get detailed information about a Roblox user by their username" },
+                    { name: "generatekey", description: "Generates a key" },
                 ],
             };
 
