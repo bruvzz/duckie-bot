@@ -9,6 +9,7 @@ const fs = require("fs");
 const path = require("path");
 
 const logChannelsPath = path.join(__dirname, "../logChannels.json");
+const logsFilePath = path.join(__dirname, "../modlogs.json");
 
 module.exports = {
     /**
@@ -80,8 +81,25 @@ module.exports = {
                     console.error("Log channel not found.");
                 }
             }
+
+            let modLogs = {};
+            if (fs.existsSync(logsFilePath)) {
+                const data = fs.readFileSync(logsFilePath);
+                modLogs = JSON.parse(data);
+            }
+                          
+            if (!modLogs[targetUser.id]) modLogs[targetUser.id] = [];
+                          
+                modLogs[targetUser.id].push({
+                    type: "Unban",
+                    reason: reason,
+                    moderator: interaction.user.id,
+                    timestamp: Math.floor(Date.now() / 1000),
+                });
+                          
+            fs.writeFileSync(logsFilePath, JSON.stringify(modLogs, null, 2));
         } catch (error) {
-            console.error("Error unbanning user:", error);
+            console.error(`Error unbanning user:, ${error}`);
             await interaction.editReply("An error occurred while trying to unban the user.");
         }
     },
