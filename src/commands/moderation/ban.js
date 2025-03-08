@@ -9,6 +9,7 @@ const {
   const path = require("path");
   
   const logChannelsPath = path.join(__dirname, "../logChannels.json");
+  const logsFilePath = path.join(__dirname, "../modlogs.json");
   
   module.exports = {
     /**
@@ -82,8 +83,25 @@ const {
             console.error("Log channel not found.");
           }
         }
+
+        let modLogs = {};
+        if (fs.existsSync(logsFilePath)) {
+          const data = fs.readFileSync(logsFilePath);
+          modLogs = JSON.parse(data);
+        }
+        
+        if (!modLogs[targetUser.id]) modLogs[targetUser.id] = [];
+        
+          modLogs[targetUser.id].push({
+            type: "Ban",
+            reason: reason,
+            moderator: interaction.user.id,
+            timestamp: Math.floor(Date.now() / 1000),
+          });
+        
+        fs.writeFileSync(logsFilePath, JSON.stringify(modLogs, null, 2));
       } catch (error) {
-        console.error("Error banning user:", error);
+        console.error(`Error banning user: ${error}`);
         await interaction.editReply("An error occurred while trying to ban the user.");
       }
     },
