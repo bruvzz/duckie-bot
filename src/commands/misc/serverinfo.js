@@ -27,7 +27,7 @@ module.exports = {
             const bannerURL = guild.bannerURL({ dynamic: true, size: 256 });
 
             const embed = new EmbedBuilder()
-                .setColor("#4ea554")
+                .setColor("Grey")
                 .setTitle(`${guild.name}`)
                 .setThumbnail(guild.iconURL({ dynamic: true, size: 1024 }))
                 .addFields(
