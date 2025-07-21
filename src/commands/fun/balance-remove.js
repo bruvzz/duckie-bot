@@ -8,7 +8,7 @@ const fs = require("fs");
 const path = require("path");
 
 const dbPath = path.resolve(__dirname, "../economy.json");
-const ALLOWED_USER_ID = "1367846972358135890";
+const ALLOWED_USER_ID = "";
 
 function loadEconomy() {
   if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, JSON.stringify({}));
