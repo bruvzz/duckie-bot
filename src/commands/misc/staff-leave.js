@@ -79,7 +79,7 @@ module.exports = {
         : null;
 
       const embed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setTitle("Staff Leave Notice")
         .setThumbnail(modalInteraction.user.displayAvatarURL({ dynamic: true }))
         .setDescription(`A Staff Member has submitted a leave request.`)
