@@ -23,7 +23,7 @@ module.exports = {
       const botLatency = end - start;
 
       const embed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setTitle("Success")
         .setDescription("Here's my current latency statistics:")
         .addFields(
