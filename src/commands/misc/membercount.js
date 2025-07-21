@@ -18,12 +18,14 @@ module.exports = {
             const memberCount = interaction.guild.memberCount;
 
             const embed = new EmbedBuilder()
-                .setColor("#4ea554")
+                .setColor("Grey")
+                .setTitle("Membercount")
                 .setTimestamp()
-                .setDescription(`
-                    ## Membercount
-                    __${serverName}__ currently has **${memberCount}** members.
-                `);
+                .setFooter({
+                    text: `Requested by ${interaction.user.tag}`,
+                    iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+                  })
+                .setDescription(`\`${serverName}\` currently has **${memberCount}** members.`);
 
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {
