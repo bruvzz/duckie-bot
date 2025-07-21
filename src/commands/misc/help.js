@@ -28,11 +28,17 @@ module.exports = {
                     { name: "help", description: "Shows this help message" },
                     { name: "membercount", description: "Get the member count of a server" },
                     { name: "ping", description: "Check the bot's and API latency" },
+                    { name: "request-a-key", description: "Request a key by providing your Wave username and optional email" },
                     { name: "roles", description: "Displays a list of all roles in the server" },
                     { name: "serverinfo", description: "Displays information about the current server" },
                     { name: "staff-leave", description: "Submit a staff leave request" },
                     { name: "uptime", description: "Get the bot's current uptime" },
+                    { name: "vouch-approve", description: "Approve a vouch by ID" },
+                    { name: "vouch-count", description: "Check how many vouches a user has" },
+                    { name: "vouch-deny", description: "Deny a vouch by ID" },
+                    { name: "vouch-leaderboard", description: "View the vouch leaderboard" },
                     { name: "vouch", description: "Submit a vouch for someone you've helped" },
+                    { name: "vouch-leaderboard", description: "View the vouch leaderboard (total and weekly)" },
                     { name: "weao", description: "Get the list of Roblox Windows Exploits" },
                     { name: "whois", description: "Get information about a user" },
                     { name: "windows", description: "Get the list of Roblox Windows Versions" },
@@ -55,15 +61,25 @@ module.exports = {
                     { name: "warn", description: "Warn a user for inappropriate behavior" },
                 ],
                 fun: [
-                    { name: "rps", description: "Play Rock Paper Scissors" },
-                    { name: "roblox-username", description: "Get detailed information about a Roblox user by their username" },
+                    { name: "balance-add", description: "Add money to a user's balance" },
+                    { name: "balance-leaderboard", description: "View the top users by balance" },
+                    { name: "balance-remove", description: "Remove money from a user's balance" },
+                    { name: "balance", description: "Check your or another user's balance" },
+                    { name: "beg", description: "Beg for money like a broke legend" },
+                    { name: "blackjack", description: "Play a fun gamae of Blackjack" },
+                    { name: "daily", description: "Claim your daily reward" },
                     { name: "generatekey", description: "Generates a key" },
+                    { name: "heist", description: "Try your luck in a big-money heist (50/50 chance)" },
+                    { name: "roblox-username", description: "Get detailed information about a Roblox user by their username" },
+                    { name: "roulette", description: "Play a game of roulette" },
+                    { name: "rps", description: "Play Rock Paper Scissors" },
+                    { name: "work", description: "Do some work to earn money" },
                 ],
             };
 
             const createCategoryEmbed = (category, page = 0) => {
                 const embed = new EmbedBuilder()
-                    .setColor("#4ea554")
+                    .setColor("Grey")
                     .setTitle(`${category.charAt(0).toUpperCase() + category.slice(1)} Commands`)
                     .setFooter({
                         text: `Requested by ${interaction.user.tag}`,
