@@ -17,7 +17,7 @@ module.exports = {
       const guild = interaction.guild;
 
       const embed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setAuthor({
             name: "Official Submarine Bot",
             iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
