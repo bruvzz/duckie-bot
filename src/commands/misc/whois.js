@@ -7,7 +7,6 @@ const {
 
 module.exports = {
     /**
-     *
      * @param {Client} client
      * @param {Interaction} interaction
      */
@@ -16,22 +15,31 @@ module.exports = {
             await interaction.deferReply();
 
             const targetUser = interaction.options.getUser("user") || interaction.user;
-
             const targetMember = interaction.guild.members.cache.get(targetUser.id);
 
+            const coloredRole = targetMember?.roles.cache
+                .filter((r) => r.color !== 0)
+                .sort((a, b) => b.position - a.position)
+                .first();
+
+            const embedColor = coloredRole?.color || "Grey";
+
             const roles = targetMember?.roles.cache
-                .filter((role) => role.name !== "@everyone") // Exclude @everyone
+                .filter((role) => role.name !== "@everyone")
                 .sort((a, b) => b.position - a.position)
                 .map((role) => `${role}`)
                 .join(", ") || "No roles";
 
             const embed = new EmbedBuilder()
-                .setColor("#4ea554")
-                .setTitle(`${targetUser.tag}'s Information`)
+                .setColor(embedColor)
+                .setAuthor({
+                    name: `${targetUser.tag}`,
+                    iconURL: targetUser.displayAvatarURL({ dynamic: true }),
+                })
                 .setThumbnail(targetUser.displayAvatarURL({ dynamic: true, size: 1024 }))
                 .addFields(
-                    { name: "Username", value: `<@${targetUser.id}>`, inline: true },
-                    { name: "User ID", value: `${targetUser.id}`, inline: true },
+                    { name: "Username", value: `<@${targetUser.id}>`, inline: false },
+                    { name: "User ID", value: `${targetUser.id}`, inline: false },
                     {
                         name: "Account Created",
                         value: `<t:${Math.floor(targetUser.createdTimestamp / 1000)}:F>`,
