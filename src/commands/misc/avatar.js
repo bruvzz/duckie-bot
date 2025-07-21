@@ -20,7 +20,7 @@ module.exports = {
             const avatarUrl = targetUser.displayAvatarURL({ dynamic: true, size: 1024 });
 
             const embed = new EmbedBuilder()
-                .setColor("#4ea554")
+                .setColor("Grey")
                 .setTitle(`${targetUser.username}'s Avatar`)
                 .setImage(avatarUrl)
                 .setTimestamp()
