@@ -4,7 +4,7 @@ const {
   EmbedBuilder, 
   PermissionFlagsBits, 
 } = require("discord.js");
-const { v4: uuidv4 } = require("uuid"); // Import the UUID generator
+const { v4: uuidv4 } = require("uuid");
 
 module.exports = {
   /**
@@ -12,7 +12,7 @@ module.exports = {
    * @param {Interaction} interaction
    */
   callback: async (client, interaction) => {
-    const allowedRole = "";
+    const allowedRole = "1367961650010914928";
 
     if (!interaction.member.roles.cache.has(allowedRole)) {
       return await interaction.reply({ content: "❌ You don't have permission to use this command.", ephemeral: true });
@@ -22,7 +22,7 @@ module.exports = {
         const generatedKey = uuidv4();
 
         const embed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setTitle("🔑 Key Generated")
         .setDescription(`Here's your generated key: \`${generatedKey}\``)
         .setTimestamp()
