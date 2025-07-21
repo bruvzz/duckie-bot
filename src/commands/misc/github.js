@@ -22,7 +22,7 @@ module.exports = {
       const profileAvatar = `https://github.com/${botUsername}.png`;
 
       const embed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setTitle("Bot GitHub Links")
         .setDescription("Here are the GitHub links related to this bot:")
         .setThumbnail(profileAvatar)
