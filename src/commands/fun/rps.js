@@ -36,7 +36,7 @@ module.exports = {
             }
 
             const embed = new EmbedBuilder()
-                .setColor("#4ea554")
+                .setColor("Grey")
                 .setTitle("Rock Paper Scissors")
                 .setDescription(`
                     **Your choice**: ${userChoice.charAt(0).toUpperCase() + userChoice.slice(1)}
