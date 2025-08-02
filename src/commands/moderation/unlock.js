@@ -50,7 +50,7 @@ module.exports = {
       });
 
       const confirmationEmbed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setTitle("Channel Unlocked")
         .setDescription(`<#${targetChannel.id}> has been unlocked for <@&${targetRole.id}>.`)
         .addFields({ name: "Reason", value: reason })
