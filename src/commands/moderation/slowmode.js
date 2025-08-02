@@ -35,7 +35,7 @@ module.exports = {
             const durationText = duration === 1 ? "second" : "seconds";
 
             const embed = new EmbedBuilder()
-                .setColor("#4ea554")
+                .setColor("Grey")
                 .setTitle("Success")
                 .setDescription(
                     duration === 0
