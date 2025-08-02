@@ -71,7 +71,7 @@ module.exports = {
 
             const embed = new EmbedBuilder()
                 .setTitle("Success")
-                .setColor("#4ea554")
+                .setColor("Grey")
                 .setDescription(
                     `Successfully **${action}** the role ${role} for **${user.tag}**.`
                 )
@@ -93,7 +93,7 @@ module.exports = {
                 const logChannel = interaction.guild.channels.cache.get(logChannelId);
                 if (logChannel) {
                     const logEmbed = new EmbedBuilder()
-                        .setColor("#4ea554")
+                        .setColor("Grey")
                         .setTitle("Role Change Log")
                         .setDescription(
                             `**User:** <@${user.id}> (${user.id})\n` +
