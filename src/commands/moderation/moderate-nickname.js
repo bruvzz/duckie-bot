@@ -61,7 +61,7 @@ module.exports = {
 
             const embed = new EmbedBuilder()
                 .setTitle("Success")
-                .setColor("#4ea554")
+                .setColor("Grey")
                 .setDescription(
                     `Successfully moderated the username of **${user.tag}**.\n\n**New Nickname:** \`${moderatedNickname}\`\n**Reason:** ${reason}`
                 )
