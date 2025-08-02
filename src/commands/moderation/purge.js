@@ -44,7 +44,7 @@ module.exports = {
             const messageWord = deletedMessages.size === 1 ? "message" : "messages";
 
             const embed = new EmbedBuilder()
-                .setColor("#4ea554")
+                .setColor("Grey")
                 .setTitle("Success")
                 .setDescription(
                     `Successfully deleted **${deletedMessages.size} ${messageWord}.**`
@@ -67,7 +67,7 @@ module.exports = {
                 const logChannel = interaction.guild.channels.cache.get(logChannelId);
                 if (logChannel) {
                     const logEmbed = new EmbedBuilder()
-                        .setColor("#4ea554")
+                        .setColor("Grey")
                         .setTitle("Purge Log")
                         .setDescription(
                             `<@${interaction.user.id}> (**${interaction.user.id}**) purged **${deletedMessages.size} ${messageWord}** in <#${interaction.channel.id}>.`
