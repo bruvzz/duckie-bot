@@ -32,7 +32,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setTitle("Success")
-      .setColor("#4ea554")
+      .setColor("Grey")
       .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .addFields(
