@@ -11,7 +11,7 @@ module.exports = {
    * @param {Interaction} interaction
    */
   callback: async (client, interaction) => {
-    const allowedUserId = ""; // Replace with your Discord User ID
+    const allowedUserId = ""; // Replace with your Discord user ID
 
     if (interaction.user.id !== allowedUserId) {
       return await interaction.reply({ content: "❌ You can't run this command, fuck nigga.", ephemeral: true });
@@ -47,7 +47,7 @@ module.exports = {
       await channel.delete(`Restored by ${interaction.user.tag}`);
 
       const embed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setTitle("Channel Restored")
         .setDescription(`Salutations. If you have any questions or concerns, please forward them to someone on our Staff Team. Thank you so much for your patience and support!`)
         .setThumbnail(interaction.guild.iconURL())
