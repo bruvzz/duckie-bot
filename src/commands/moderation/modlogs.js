@@ -16,9 +16,17 @@ module.exports = {
   callback: async (client, interaction) => {
     try {
       const targetUser = interaction.options.getUser("user");
+      const allowedRole = "1391891077820055563";
 
       if (!targetUser) {
         return await interaction.reply({ content: "Please provide a valid user.", ephemeral: true });
+      }
+
+      if (!interaction.member.roles.cache.has(allowedRole)) {
+        return await interaction.reply({
+          content: "❌ You don't have permission to use this command.",
+          ephemeral: true,
+        });
       }
 
       let modLogs = {};
@@ -34,7 +42,7 @@ module.exports = {
       }
 
       const embed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setTitle(`Moderation Logs for ${targetUser.tag}`)
         .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
         .setDescription(userLogs.map(log => `**[${log.type}]** - \`${log.reason}\` (By: <@${log.moderator}>) - <t:${log.timestamp}:F>`).join("\n") || "No logs found.")
