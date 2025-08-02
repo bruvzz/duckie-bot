@@ -1,7 +1,18 @@
 require("dotenv").config();
-const { Client, IntentsBitField, EmbedBuilder } = require("discord.js");
+const {
+  Client,
+  IntentsBitField,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} = require("discord.js");
 const cron = require("node-cron");
 const eventHandler = require("./handlers/eventHandler");
+
+const CHANNEL_ID = process.env.NOTIFY_CHANNEL_ID || "";
+const EVERYONE_PING = "@everyone";
+const MIN_BET_INTERVAL_MS = 3000;
 
 const client = new Client({
   intents: [
@@ -12,78 +23,196 @@ const client = new Client({
   ],
 });
 
-const CHANNEL_ID = "";
 let currentWindowsHash = null;
 let futureWindowsHash = null;
 
-const fetchWindowsHash = async (url) => {
+async function fetchJson(url) {
   try {
-    const response = await fetch(url);
-    const data = await response.json();
-    return data.Windows;
-  } catch (error) {
-    console.error(`Error fetching Roblox Windows hash from ${url}:`, error);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status} from ${url}`);
+    return await res.json();
+  } catch (err) {
+    console.error(`Error fetching ${url}:`, err);
     return null;
   }
-};
+}
 
-const monitorHashUpdates = async () => {
-  const newCurrentHash = await fetchWindowsHash("https://weao.xyz/api/versions/current");
-  const newFutureHash = await fetchWindowsHash("https://weao.xyz/api/versions/future");
+function buildEmbed(title, color, description) {
+  return new EmbedBuilder().setTitle(title).setColor(color).setDescription(description).setTimestamp();
+}
 
-  const channel = client.channels.cache.get(CHANNEL_ID);
+function buildVersionButton(hash) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setLabel(hash)
+      .setStyle(ButtonStyle.Link)
+      .setURL(`https://rdd.weao.xyz/?channel=LIVE&binaryType=WindowsPlayer&version=${hash}`)
+  );
+}
 
-  if (channel) {
-    const messagesToSend = [];
+function buildFutureRow(futureHash) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setLabel(futureHash).setStyle(ButtonStyle.Secondary).setDisabled(false),
+    new ButtonBuilder()
+      .setLabel("Download")
+      .setStyle(ButtonStyle.Link)
+      .setURL(
+        `https://rdd.weao.xyz/?channel=LIVE&binaryType=WindowsPlayer&version=${futureHash}`
+      )
+  );
+}
+
+async function notifyCurrent(channel, newCurrentHash) {
+  currentWindowsHash = newCurrentHash;
+
+  const currentEmbed = new EmbedBuilder()
+    .setTitle("New Roblox Deployment Detected")
+    .setColor("#962424")
+    .setDescription("All exploits are now patched. Roblox has updated to a new version.")
+    .setTimestamp();
+
+  const row = buildVersionButton(newCurrentHash);
+
+  await channel.send({
+    content: EVERYONE_PING,
+    embeds: [currentEmbed],
+    components: [row],
+  });
+}
+
+async function notifyFuture(channel, newFutureHash) {
+  futureWindowsHash = newFutureHash;
+
+  const futureEmbed = new EmbedBuilder()
+    .setTitle("New Roblox Deployment Detected")
+    .setColor("#965d24")
+    .setDescription("**This is a future build and is not out yet.** A new version deployment has been released.")
+    .setTimestamp();
+
+  const row = buildFutureRow(newFutureHash);
+
+  await channel.send({
+    content: EVERYONE_PING,
+    embeds: [futureEmbed],
+    components: [row],
+  });
+}
+
+async function monitorHashUpdates() {
+  try {
+    const [currentData, futureData] = await Promise.all([
+      fetchJson("https://weao.xyz/api/versions/current"),
+      fetchJson("https://weao.xyz/api/versions/future"),
+    ]);
+
+    const newCurrentHash = currentData?.Windows || null;
+    const newFutureHash = futureData?.Windows || null;
+
+    const channel = client.channels.cache.get(CHANNEL_ID);
+    if (!channel) {
+      console.warn(`Channel with ID ${CHANNEL_ID} not found.`);
+      return;
+    }
 
     if (newCurrentHash && newCurrentHash !== currentWindowsHash) {
-      currentWindowsHash = newCurrentHash;
-
-      const currentEmbed = new EmbedBuilder()
-        .setTitle("New Roblox Deployment Detected")
-        .setColor("#4ea554")
-        .setDescription(
-          `All exploits are now patched. Roblox has updated to the following version:\n\n**Hash:** \`${newCurrentHash}\``
-        )
-        .setTimestamp();
-
-      messagesToSend.push(currentEmbed);
+      await notifyCurrent(channel, newCurrentHash);
     }
 
     if (newFutureHash && newFutureHash !== futureWindowsHash) {
-      futureWindowsHash = newFutureHash;
-
-      const futureEmbed = new EmbedBuilder()
-        .setTitle("New Roblox Deployment Detected")
-        .setColor("#4ea554")
-        .setDescription(
-          `**This is a future build and is not out yet.**\nA new version deployment has been released:\n\n**Hash:** \`${newFutureHash}\`\n**Download:** [Here](https://rdd.weao.xyz/?channel=LIVE&binaryType=WindowsPlayer&version=${newFutureHash})`
-        )
-        .setTimestamp();
-
-      messagesToSend.push(futureEmbed);
+      await notifyFuture(channel, newFutureHash);
     }
-
-    if (messagesToSend.length > 0) {
-      await channel.send({
-        content: "@everyone",
-        embeds: messagesToSend,
-      });
-    }
+  } catch (err) {
+    console.error("monitorHashUpdates error:", err);
   }
-};
+}
 
-setInterval(() => {
-  console.log("Checking for Roblox Windows hash updates...");
-  monitorHashUpdates();
-}, 3000); // 3000 milliseconds = 3 seconds
+client.once("ready", async () => {
+  try {
+    currentWindowsHash = (await fetchJson("https://weao.xyz/api/versions/current"))?.Windows || null;
+    futureWindowsHash = (await fetchJson("https://weao.xyz/api/versions/future"))?.Windows || null;
 
-client.on("ready", async () => {
-  currentWindowsHash = await fetchWindowsHash("https://weao.xyz/api/versions/current");
-  futureWindowsHash = await fetchWindowsHash("https://weao.xyz/api/versions/future");
+    console.log(`Initial Roblox Windows Current Hash: ${currentWindowsHash}`);
+    console.log(`Initial Roblox Windows Future Hash: ${futureWindowsHash}`);
 
-  console.log(`Initial Roblox Windows Current Hash: ${currentWindowsHash}`);
-  console.log(`Initial Roblox Windows Future Hash: ${futureWindowsHash}`);
+    client.user.setPresence({
+      activities: [{ name: "with Submarine! /help", type: 0 }],
+      status: "idle",
+    });
+
+    // kick off cron checking every 3 seconds
+    cron.schedule("*/3 * * * * *", () => {
+      console.log("Checking for Roblox Windows hash updates..."); // keep for visibility
+      monitorHashUpdates();
+    });
+  } catch (err) {
+    console.error("Error during ready handler:", err);
+  }
+});
+
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+
+  const isOnlyMentioningBot =
+    message.mentions.has(client.user) && message.mentions.users.size === 1;
+
+  if (isOnlyMentioningBot) {
+    const reply = await message.reply(
+      `${message.author} - Greetings! Use \`/help\` if you need any assistance.`
+    );
+    setTimeout(async () => {
+      try {
+        await reply.delete();
+      } catch (err) {
+        console.error("Failed to delete bot reply:", err);
+      }
+    }, 5000);
+  }
+
+  if (message.content.toLowerCase() === "w.help") {
+    await message.reply(`${message.author} - There will never be prefixes, fuckass boy.`);
+  }
+});
+
+// centralized process-level error logging
+const isIgnoredError = (obj) =>
+  JSON.stringify(obj).match(/(Error: read ECONNRESET|-4077|stream_base_commons:217:20)/g);
+
+process.on("unhandledRejection", (reason, p) => {
+  if (isIgnoredError(reason)) {
+    return console.log("WSS Error: Client Lost Connection and Connection Reset");
+  }
+  console.log("\n=== UNHANDLED REJECTION ===");
+  console.log("Promise:", p, "Reason:", reason.stack || reason);
+  console.log("=== UNHANDLED REJECTION ===");
+});
+
+process.on("uncaughtException", (err, origin) => {
+  if (isIgnoredError(err)) return;
+  console.log("\n=== UNCAUGHT EXCEPTION ===");
+  console.log("Origin:", origin, "Exception:", err.stack || err);
+  console.log("=== UNCAUGHT EXCEPTION ===");
+});
+
+process.on("uncaughtExceptionMonitor", (err, origin) => {
+  if (isIgnoredError(err)) return;
+  console.log("\n=== UNCAUGHT EXCEPTION MONITOR ===");
+  console.log("Origin:", origin, "Exception:", err.stack || err);
+  console.log("=== UNCAUGHT EXCEPTION MONITOR ===");
+});
+
+process.on("beforeExit", (code) => {
+  console.log("\n=== BEFORE EXIT ===");
+  console.log("Code:", code);
+});
+
+process.on("exit", (code) => {
+  console.log("\n=== EXIT ===");
+  console.log("Code:", code);
+});
+
+process.on("multipleResolves", (type, promise, reason) => {
+  console.log("\n=== MULTIPLE RESOLVES ===");
+  console.log(type, promise, reason);
 });
 
 eventHandler(client);
