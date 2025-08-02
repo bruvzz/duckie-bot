@@ -46,7 +46,7 @@ module.exports = {
       }
 
       const embed = new EmbedBuilder()
-        .setColor("#4ea554")
+        .setColor("Grey")
         .setTitle("Success")
         .addFields(
           { name: "User Warned:", value: `${targetUser} (${targetUser.id})`, inline: true },
