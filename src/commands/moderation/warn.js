@@ -1,8 +1,8 @@
 const { 
-    Client, 
-    Interaction, 
-    EmbedBuilder, 
-    PermissionsBitField, 
+  Client, 
+  Interaction, 
+  EmbedBuilder, 
+  PermissionsBitField, 
 } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
@@ -45,6 +45,29 @@ module.exports = {
         dmSent = "❌ **DM Not Sent.**";
       }
 
+      let modLogs = {};
+      if (fs.existsSync(logsFilePath)) {
+        const data = fs.readFileSync(logsFilePath);
+        modLogs = JSON.parse(data);
+      }
+
+      if (!modLogs[targetUser.id]) modLogs[targetUser.id] = [];
+
+      const warnId = modLogs[targetUser.id].length > 0
+        ? modLogs[targetUser.id][modLogs[targetUser.id].length - 1].warnId + 1
+        : 1;
+
+      const newWarn = {
+        warnId: warnId,
+        type: "Warning",
+        reason: reason,
+        moderator: interaction.user.id,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+
+      modLogs[targetUser.id].push(newWarn);
+      fs.writeFileSync(logsFilePath, JSON.stringify(modLogs, null, 2));
+
       const embed = new EmbedBuilder()
         .setColor("Grey")
         .setTitle("Success")
@@ -52,51 +75,35 @@ module.exports = {
           { name: "User Warned:", value: `${targetUser} (${targetUser.id})`, inline: true },
           { name: "Moderator:", value: `${interaction.user} (${interaction.user.id})`, inline: true },
           { name: "Reason:", value: `\`${reason}\``, inline: true },
-          { name: "DM Status:", value: dmSent, inline: false }
+          { name: "Warn ID:", value: `\`#${warnId}\``, inline: true },
+          { name: "DM Status:", value: dmSent, inline: true }
         )
         .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
         .setTimestamp();
 
       await interaction.reply({ embeds: [embed] });
 
-        let logChannels = {};
-        if (fs.existsSync(logChannelsPath)) {
-            logChannels = JSON.parse(fs.readFileSync(logChannelsPath, "utf-8"));
+      let logChannels = {};
+      if (fs.existsSync(logChannelsPath)) {
+        logChannels = JSON.parse(fs.readFileSync(logChannelsPath, "utf-8"));
+      }
+
+      const logChannelId = logChannels[interaction.guild.id];
+      if (logChannelId) {
+        const logChannel = interaction.guild.channels.cache.get(logChannelId);
+        if (logChannel) {
+          const logEmbed = new EmbedBuilder(embed.data)
+            .setTitle("Warn Log")
+            .setTimestamp();
+
+          await logChannel.send({ embeds: [logEmbed] });
         }
-        
-        const logChannelId = logChannels[interaction.guild.id];
-        if (logChannelId) {
-            const logChannel = interaction.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-                const logEmbed = new EmbedBuilder(embed.data)
-                    .setTitle("Warn Log")
-                    .setTimestamp()
-        
-                await logChannel.send({ embeds: [logEmbed] });
-            } else {
-                console.error("Log channel not found.");
-            }
-        }
-
-        let modLogs = {};
-        if (fs.existsSync(logsFilePath)) {
-            const data = fs.readFileSync(logsFilePath);
-            modLogs = JSON.parse(data);
-        }
-
-        if (!modLogs[targetUser.id]) modLogs[targetUser.id] = [];
-
-        modLogs[targetUser.id].push({
-            type: "Warning",
-            reason: reason,
-            moderator: interaction.user.id,
-            timestamp: Math.floor(Date.now() / 1000),
-        });
-
-        fs.writeFileSync(logsFilePath, JSON.stringify(modLogs, null, 2));
+      }
     } catch (error) {
       console.error("Error handling warn command:", error);
-      await interaction.reply({ content: "An error occurred while warning the user.", ephemeral: true });
+      if (!interaction.replied) {
+        await interaction.reply({ content: "An error occurred while warning the user.", ephemeral: true });
+      }
     }
   },
 
