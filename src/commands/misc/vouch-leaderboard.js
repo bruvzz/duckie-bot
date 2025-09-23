@@ -16,13 +16,16 @@ function loadDB() {
   return JSON.parse(fs.readFileSync(dbPath, "utf8"));
 }
 
+const hasSupportRole = (member) =>
+  member?.roles?.cache?.some((r) => r.name.toLowerCase() === "support");
+
 module.exports = {
   name: "vouch-leaderboard",
   description: "View the vouch leaderboard.",
 
   /**
    * @param {Client} client
-   * @param {Interaction} interaction
+   * @param {Interaction} interaction}
    */
   callback: async (client, interaction) => {
     await interaction.deferReply();
@@ -31,59 +34,62 @@ module.exports = {
 
     const counts = {};
     for (const vouch of Object.values(db)) {
-      if (vouch.status === "approved") {
-        const value = vouch.negative ? -1 : 1;
-        counts[vouch.helperId] = (counts[vouch.helperId] || 0) + value;
+      if (vouch?.status === "approved") {
+        const delta = vouch.negative ? -1 : 1;
+        const id = String(vouch.helperId);
+        counts[id] = (counts[id] || 0) + delta;
       }
     }
 
     const sorted = Object.entries(counts)
       .map(([userId, count]) => ({ userId, count }))
-      .filter(({ count }) => count > 0)
+      .filter((x) => x.count > 0)
       .sort((a, b) => b.count - a.count);
 
-    if (sorted.length === 0) {
+    if (!sorted.length) {
       return interaction.editReply("No approved vouches found.");
+    }
+
+    const ids = sorted.map((x) => x.userId);
+    let membersMap = new Map();
+    try {
+      const fetched = await interaction.guild.members.fetch({ user: ids });
+      membersMap = fetched;
+    } catch {
+      membersMap = new Map();
+    }
+
+    const rows = [];
+    let rank = 1;
+    for (const { userId, count } of sorted) {
+      const member = membersMap.get(userId);
+      if (!member) continue;
+      if (!hasSupportRole(member)) continue;
+
+      const vouchWord = count === 1 ? "vouch" : "vouches";
+      rows.push(`**${rank}.** <@${userId}> — **${count}** ${vouchWord}`);
+      rank++;
+    }
+
+    if (!rows.length) {
+      return interaction.editReply("No eligible members found on the leaderboard.");
     }
 
     const perPage = 10;
     const pages = [];
-    let rank = 1;
+    for (let i = 0; i < rows.length; i += perPage) {
+      const description = rows.slice(i, i + perPage).join("\n");
+      const embed = new EmbedBuilder()
+        .setTitle("🏆 Vouch Leaderboard")
+        .setColor("Grey")
+        .setDescription(description)
+        .setFooter({
+          text: `Requested by ${interaction.user.tag}`,
+          iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+        })
+        .setTimestamp();
 
-    for (let i = 0; i < sorted.length; i += perPage) {
-      const chunk = sorted.slice(i, i + perPage);
-      let description = "";
-
-      for (const { userId, count } of chunk) {
-        try {
-          const member = await interaction.guild.members.fetch(userId);
-          if (member) {
-            const vouchWord = count === 1 ? "vouch" : "vouches";
-            description += `**${rank}.** <@${userId}> — **${count}** ${vouchWord}\n`;
-            rank++;
-          }
-        } catch {
-          // Member not in guild or fetch failed, skip
-        }
-      }
-
-      if (description) {
-        const embed = new EmbedBuilder()
-          .setTitle("🏆 Vouch Leaderboard")
-          .setColor("Grey")
-          .setDescription(description)
-          .setFooter({
-            text: `Requested by ${interaction.user.tag}`,
-            iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
-          })
-          .setTimestamp();
-
-        pages.push(embed);
-      }
-    }
-
-    if (!pages.length) {
-      return interaction.editReply("No eligible members found on the leaderboard.");
+      pages.push(embed);
     }
 
     let currentPage = 0;
@@ -112,11 +118,8 @@ module.exports = {
     });
 
     collector.on("collect", async (i) => {
-      if (i.customId === "prev" && currentPage > 0) {
-        currentPage--;
-      } else if (i.customId === "next" && currentPage < pages.length - 1) {
-        currentPage++;
-      }
+      if (i.customId === "prev" && currentPage > 0) currentPage--;
+      else if (i.customId === "next" && currentPage < pages.length - 1) currentPage++;
 
       row.components[0].setDisabled(currentPage === 0);
       row.components[1].setDisabled(currentPage === pages.length - 1);
