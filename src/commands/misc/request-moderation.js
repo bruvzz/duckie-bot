@@ -4,8 +4,8 @@ const {
   EmbedBuilder,
 } = require("discord.js");
 
-const reviewChannelId = "1439817003048374393";
-const allowedRole = "1413980010439643297";
+const reviewChannelId = "";
+const allowedRole = "";
 
 module.exports = {
   name: "request-moderation",
