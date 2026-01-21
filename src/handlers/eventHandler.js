@@ -10,11 +10,18 @@ module.exports = (client) => {
 
     const eventName = eventFolder.replace(/\\/g, "/").split("/").pop();
 
-    client.on(eventName, async (arg) => {
-      for (const eventFile of eventFiles) {
-        const eventFunction = require(eventFile);
-        await eventFunction(client, arg);
-      }
-    });
+    for (const eventFile of eventFiles) {
+      const eventFunction = require(eventFile);
+      client.on(eventName, (...args) => {
+        try {
+          const result = eventFunction(client, ...args);
+          if (result && typeof result.catch === "function") {
+            result.catch(err => console.error(`Event ${eventName} error:`, err));
+          }
+        } catch (err) {
+          console.error(`Event ${eventName} error:`, err);
+        }
+      });
+    }
   }
 };
