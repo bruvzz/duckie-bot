@@ -3,6 +3,9 @@ const {
     Interaction,
     ApplicationCommandOptionType,
     ChannelType,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
 } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
@@ -10,6 +13,16 @@ const path = require("path");
 const logChannelsPath = path.join(__dirname, "../logChannels.json");
 
 module.exports = {
+    name: "set-logs",
+    description: "Set the channel where moderation logs will be sent.",
+    options: [
+        {
+            name: "channel",
+            description: "The channel where moderation logs will be sent.",
+            type: ApplicationCommandOptionType.Channel,
+            required: true,
+        },
+    ],
     /**
      * @param {Client} client
      * @param {Interaction} interaction
@@ -30,9 +43,8 @@ module.exports = {
                 });
             }
 
-            const channel = interaction.options.getChannel("channel");
-
-            if (!channel || channel.type !== ChannelType.GuildText) {
+            const newChannel = interaction.options.getChannel("channel");
+            if (!newChannel || newChannel.type !== ChannelType.GuildText) {
                 return interaction.reply({
                     content: "Please provide a valid text channel.",
                     ephemeral: true,
@@ -44,31 +56,47 @@ module.exports = {
                 logChannels = JSON.parse(fs.readFileSync(logChannelsPath, "utf-8"));
             }
 
-            logChannels[interaction.guild.id] = channel.id;
+            const currentChannelId = logChannels[interaction.guild.id];
 
+            if (currentChannelId === newChannel.id) {
+                return interaction.reply({
+                    content: `${newChannel} is already set as the logs channel.`,
+                    ephemeral: true,
+                });
+            }
+
+            if (currentChannelId && currentChannelId !== newChannel.id) {
+                const row = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`overwrite_logs_${newChannel.id}`)
+                        .setLabel("Overwrite")
+                        .setStyle(ButtonStyle.Success),
+                    new ButtonBuilder()
+                        .setCustomId("cancel_logs")
+                        .setLabel("Cancel")
+                        .setStyle(ButtonStyle.Danger)
+                );
+
+                return interaction.reply({
+                    content: `<#${currentChannelId}> is currently the logs channel. Are you sure you want to log everything in ${newChannel}?`,
+                    ephemeral: true,
+                    components: [row],
+                });
+            }
+
+            logChannels[interaction.guild.id] = newChannel.id;
             fs.writeFileSync(logChannelsPath, JSON.stringify(logChannels, null, 2));
 
-            await interaction.reply({
-                content: `Success. All successful moderation commands will now be logged in ${channel}.`,
+            return interaction.reply({
+                content: `Success! All moderation logs will now be sent to ${newChannel}.`,
                 ephemeral: true,
             });
         } catch (error) {
             console.error("Error setting log channel:", error);
-            await interaction.reply({
+            return interaction.reply({
                 content: "An error occurred while setting the log channel.",
                 ephemeral: true,
             });
         }
     },
-
-    name: "set-logs",
-    description: "Set the channel where moderation logs will be sent.",
-    options: [
-        {
-            name: "channel",
-            description: "The channel where moderation logs will be sent.",
-            type: ApplicationCommandOptionType.Channel,
-            required: true,
-        },
-    ],
 };
