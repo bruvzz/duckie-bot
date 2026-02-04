@@ -9,7 +9,7 @@ const path = require("path");
 const crypto = require("crypto");
 
 const dbPath = path.resolve(__dirname, "../vouches.json");
-const VOUCH_LOG_CHANNEL_ID = ""; // Replace with your channel ID
+const VOUCH_LOG_CHANNEL_ID = ""; 
 
 function loadDB() {
   if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, JSON.stringify({}));
