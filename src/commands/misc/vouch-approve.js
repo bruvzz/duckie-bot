@@ -59,6 +59,30 @@ module.exports = {
     db[vouchId].approvedReason = reason;
     db[vouchId].approvedBy = interaction.user.id;
     saveDB(db);
+      
+    const submitterId = db[vouchId].helperId;
+
+    if (submitterId) {
+      try {
+        const user = await client.users.fetch(submitterId);
+
+        const dmEmbed = new EmbedBuilder()
+          .setColor("#60eb85")
+          .setTitle("✅ Your Vouch Was Approved")
+          .setDescription(
+            `Your vouch for <@${db[vouchId].helpedId}> has been **approved**.`
+          )
+          .addFields(
+            { name: "Vouch ID", value: `\`${vouchId}\`` },
+            { name: "Reviewed By", value: `<@${interaction.user.id}>` },
+            { name: "Reason", value: reason }
+          )
+          .setTimestamp();
+
+        await user.send({ embeds: [dmEmbed] });
+      } catch {
+      }
+    }
 
     if (db[vouchId].logChannelId && db[vouchId].logMessageId) {
       try {
