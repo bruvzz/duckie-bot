@@ -59,6 +59,31 @@ module.exports = {
     db[vouchId].deniedReason = reason;
     db[vouchId].deniedBy = interaction.user.id;
     saveDB(db);
+      
+    const submitterId = db[vouchId].helperId;
+
+    if (submitterId) {
+      try {
+        const user = await client.users.fetch(submitterId);
+
+        const dmEmbed = new EmbedBuilder()
+          .setColor("#eb6060")
+          .setTitle("❌ Your Vouch Was Denied")
+          .setDescription(
+            `Your vouch for <@${db[vouchId].helpedId}> has been **denied**.`
+          )
+          .addFields(
+            { name: "Vouch ID", value: `\`${vouchId}\`` },
+            { name: "Reviewed By", value: `<@${interaction.user.id}>` },
+            { name: "Reason", value: reason }
+          )
+          .setTimestamp();
+
+        await user.send({ embeds: [dmEmbed] });
+      } catch {
+      }
+    }
+
 
     if (db[vouchId].logChannelId && db[vouchId].logMessageId) {
       try {
