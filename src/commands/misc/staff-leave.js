@@ -136,7 +136,7 @@ module.exports = {
           .setStyle(ButtonStyle.Danger)
       );
 
-      const targetChannelId = "1367964325154787470";
+      const targetChannelId = "";
       const targetChannel = await interaction.guild.channels.fetch(targetChannelId);
       
       let message;
