@@ -1,205 +1,133 @@
 const {
-    Client,
-    Interaction,
-    EmbedBuilder,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    StringSelectMenuBuilder,
-    ApplicationCommandOptionType,
+  Client,
+  Interaction,
+  EmbedBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  ComponentType,
 } = require("discord.js");
+const fs = require("fs");
+const path = require("path");
 
 module.exports = {
-    /**
-     *
-     * @param {Client} client
-     * @param {Interaction} interaction
-     */
-    callback: async (client, interaction) => {
-        try {
-            await interaction.deferReply();
+  /**
+   * @param {Client} client
+   * @param {Interaction} interaction
+   */
+  callback: async (client, interaction) => {
+    try {
+      await interaction.deferReply();
 
-            const categories = {
-                general: [
-                    { name: "avatar", description: "Get the avatar of a user" },
-                    { name: "faq", description: "Get frequently asked questions and answers on Submarine Services" },
-                    { name: "getkey", description: "Get special information on Submarine Services" },
-                    { name: "github", description: "Get the GitHub profile and repository of the bot" },
-                    { name: "help", description: "Shows this help message" },
-                    { name: "membercount", description: "Get the member count of a server" },
-                    { name: "ping", description: "Check the bot's and API latency" },
-                    { name: "request-a-key", description: "Request a key by providing your Wave username and optional email" },
-                    { name: "roles", description: "Displays a list of all roles in the server" },
-                    { name: "serverinfo", description: "Displays information about the current server" },
-                    { name: "staff-leave", description: "Submit a staff leave request" },
-                    { name: "uptime", description: "Get the bot's current uptime" },
-                    { name: "vouch-approve", description: "Approve a vouch by ID" },
-                    { name: "vouch-count", description: "Check how many vouches a user has" },
-                    { name: "vouch-deny", description: "Deny a vouch by ID" },
-                    { name: "vouch-leaderboard", description: "View the vouch leaderboard" },
-                    { name: "vouch", description: "Submit a vouch for someone you've helped" },
-                    { name: "vouch-leaderboard", description: "View the vouch leaderboard (total and weekly)" },
-                    { name: "weao", description: "Get the list of Roblox Windows Exploits" },
-                    { name: "whois", description: "Get information about a user" },
-                    { name: "windows", description: "Get the list of Roblox Windows Versions" },
-                ],
-                moderation: [
-                    { name: "ban", description: "Ban a member from the server" },
-                    { name: "kick", description: "Kick a member from the server" },
-                    { name: "lock", description: "Locks a channel by denying send message permissions for a specific role" },
-                    { name: "moderate-nickname", description: "Moderates a person's username using their User ID" },
-                    { name: "modlogs", description: "View moderation history of a user" },
-                    { name: "nuke", description: "Nukes a channel (deletes & recreates it with the same settings)" },
-                    { name: "purge", description: "Delete messages in the channel" },
-                    { name: "set-logs", description: "Set the channel where moderation logs will be sent" },
-                    { name: "slowmode", description: "Set a slowmode for a channel" },
-                    { name: "timeout", description: "Timeout a user" },
-                    { name: "toggle-role", description: "Toggle a server role for a user by their User ID" },
-                    { name: "unban", description: "Unban a member from the server" },
-                    { name: "unlock", description: "Unlocks a channel by restoring send message permissions for a specific role" },
-                    { name: "untimeout", description: "UnTimeout a user" },
-                    { name: "warn", description: "Warn a user for inappropriate behavior" },
-                ],
-                fun: [
-                    { name: "balance-add", description: "Add money to a user's balance" },
-                    { name: "balance-leaderboard", description: "View the top users by balance" },
-                    { name: "balance-remove", description: "Remove money from a user's balance" },
-                    { name: "balance", description: "Check your or another user's balance" },
-                    { name: "beg", description: "Beg for money like a broke legend" },
-                    { name: "blackjack", description: "Play a fun gamae of Blackjack" },
-                    { name: "daily", description: "Claim your daily reward" },
-                    { name: "generatekey", description: "Generates a key" },
-                    { name: "heist", description: "Try your luck in a big-money heist (50/50 chance)" },
-                    { name: "roblox-username", description: "Get detailed information about a Roblox user by their username" },
-                    { name: "roulette", description: "Play a game of roulette" },
-                    { name: "rps", description: "Play Rock Paper Scissors" },
-                    { name: "work", description: "Do some work to earn money" },
-                ],
-            };
+      const commandsPath = path.join(__dirname, "..");
+      const categories = {};
 
-            const createCategoryEmbed = (category, page = 0) => {
-                const embed = new EmbedBuilder()
-                    .setColor("Grey")
-                    .setTitle(`${category.charAt(0).toUpperCase() + category.slice(1)} Commands`)
-                    .setFooter({
-                        text: `Requested by ${interaction.user.tag}`,
-                        iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
-                    })
-                    .setTimestamp();
+      const categoryFolders = fs.readdirSync(commandsPath).filter(folder => 
+        fs.lstatSync(path.join(commandsPath, folder)).isDirectory()
+      );
 
-                const pageSize = 5;
-                const start = page * pageSize;
-                const end = start + pageSize;
-                const commandsOnPage = categories[category].slice(start, end);
+      for (const folder of categoryFolders) {
+        const commandFiles = fs.readdirSync(path.join(commandsPath, folder)).filter(file => file.endsWith(".js"));
+        
+        if (commandFiles.length === 0) continue;
 
-                commandsOnPage.forEach((cmd) => {
-                    embed.addFields({
-                        name: `/${cmd.name}`,
-                        value: cmd.description,
-                        inline: false,
-                    });
-                });
+        const categoryName = folder.charAt(0).toUpperCase() + folder.slice(1);
+        categories[categoryName] = [];
 
-                const totalPages = Math.ceil(categories[category].length / pageSize);
-                embed.setDescription(
-                    `\nPage ${page + 1} / ${totalPages}`
-                );
-
-                return embed;
-            };
-
-
-            const categorySelectMenu = new StringSelectMenuBuilder()
-                .setCustomId("categorySelect")
-                .setPlaceholder("Select a category")
-                .addOptions(
-                    Object.keys(categories).map((category) => ({
-                        label: category.charAt(0).toUpperCase() + category.slice(1),
-                        value: category,
-                    }))
-                );
-
-            const selectActionRow = new ActionRowBuilder().addComponents(categorySelectMenu);
-
-            const createPaginationButtons = (category, page) => {
-                const totalPages = Math.ceil(categories[category].length / 5);
-                const buttons = [
-                    new ButtonBuilder()
-                        .setCustomId("prevPage")
-                        .setLabel("Previous")
-                        .setStyle(ButtonStyle.Success)
-                        .setDisabled(page === 0),
-                    new ButtonBuilder()
-                        .setCustomId("nextPage")
-                        .setLabel("Next")
-                        .setStyle(ButtonStyle.Success)
-                        .setDisabled(page >= totalPages - 1),
-                ];
-
-                return new ActionRowBuilder().addComponents(...buttons);
-            };
-
-            let currentPage = 0;
-            await interaction.editReply({
-                embeds: [createCategoryEmbed("general", currentPage)],
-                components: [selectActionRow, createPaginationButtons("general", currentPage)],
+        for (const file of commandFiles) {
+          const command = require(path.join(commandsPath, folder, file));
+          if (command.name && command.description) {
+            categories[categoryName].push({
+              name: command.name,
+              description: command.description,
             });
-
-            const filter = (buttonInteraction) =>
-                buttonInteraction.user.id === interaction.user.id;
-
-            const collector = interaction.channel.createMessageComponentCollector({
-                filter,
-                time: 60000,
-            });
-
-            collector.on("collect", async (buttonInteraction) => {
-                await buttonInteraction.deferUpdate();
-
-                const customId = buttonInteraction.customId;
-                const selectedCategory = buttonInteraction.message.embeds[0].title.split(" ")[0].toLowerCase();
-
-                if (customId === "categorySelect") {
-                    const selectedCategory = buttonInteraction.values[0];
-                    currentPage = 0;
-                    await buttonInteraction.editReply({
-                        embeds: [createCategoryEmbed(selectedCategory, currentPage)],
-                        components: [
-                            selectActionRow,
-                            createPaginationButtons(selectedCategory, currentPage),
-                        ],
-                    });
-                } else if (customId === "prevPage" || customId === "nextPage") {
-                    currentPage = customId === "prevPage" ? currentPage - 1 : currentPage + 1;
-                    await buttonInteraction.editReply({
-                        embeds: [createCategoryEmbed(selectedCategory, currentPage)],
-                        components: [
-                            selectActionRow,
-                            createPaginationButtons(selectedCategory, currentPage),
-                        ],
-                    });
-                }
-            });
-
-            collector.on("end", async () => {
-                const disabledRow = new ActionRowBuilder().addComponents(
-                    createPaginationButtons("general", currentPage).components.map((button) =>
-                        button.setDisabled(true)
-                    )
-                );
-
-                await interaction.editReply({
-                    components: [disabledRow],
-                });
-            });
-        } catch (error) {
-            console.error("Error in help command:", error);
-            await interaction.editReply({
-                content: "An error occurred while generating the help menu.",
-            });
+          }
         }
-    },
+      }
 
-    name: "help",
-    description: "Displays a help menu with available commands.",
+      const mainEmbed = new EmbedBuilder()
+        .setColor("Blue")
+        .setTitle("Help Menu")
+        .setDescription("Welcome to the help menu! Use the dropdown below to explore commands by category.")
+        .setThumbnail(client.user.displayAvatarURL())
+        .addFields(
+          { name: "Total Categories", value: `${Object.keys(categories).length}`, inline: true },
+          { name: "Total Commands", value: `${Object.values(categories).flat().length}`, inline: true }
+        )
+        .setFooter({
+          text: `Requested by ${interaction.user.tag}`,
+          iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+        })
+        .setTimestamp();
+
+      const selectMenu = new StringSelectMenuBuilder()
+        .setCustomId("help_category_select")
+        .setPlaceholder("Choose a command category...")
+        .addOptions(
+          Object.keys(categories).map((cat) => ({
+            label: cat,
+            description: `View ${categories[cat].length} ${cat} commands`,
+            value: cat.toLowerCase(),
+            emoji: "📁"
+          }))
+        );
+
+      const row = new ActionRowBuilder().addComponents(selectMenu);
+
+      const response = await interaction.editReply({
+        embeds: [mainEmbed],
+        components: [row],
+      });
+
+      const collector = response.createMessageComponentCollector({
+        componentType: ComponentType.StringSelect,
+        time: 300000, // 5 minutes
+      });
+
+      collector.on("collect", async (i) => {
+        if (i.user.id !== interaction.user.id) {
+          return i.reply({ content: "This menu isn't for you!", ephemeral: true });
+        }
+
+        const selectedValue = i.values[0];
+        const categoryKey = Object.keys(categories).find(k => k.toLowerCase() === selectedValue);
+        const categoryCommands = categories[categoryKey];
+
+        const categoryEmbed = new EmbedBuilder()
+          .setColor("Blue")
+          .setTitle(`${categoryKey} Commands`)
+          .setDescription(`Here are the commands available in the **${categoryKey}** category:`)
+          .setFooter({
+            text: `Page 1/1 • Total: ${categoryCommands.length}`,
+            iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setTimestamp();
+
+        categoryCommands.forEach(cmd => {
+          categoryEmbed.addFields({
+            name: `\`/${cmd.name}\``,
+            value: cmd.description || "No description provided.",
+            inline: false
+          });
+        });
+
+        await i.update({ embeds: [categoryEmbed] });
+      });
+
+      collector.on("end", () => {
+        row.components[0].setDisabled(true).setPlaceholder("Help menu expired.");
+        interaction.editReply({ components: [row] }).catch(() => {});
+      });
+
+    } catch (error) {
+      console.error("Error in help command:", error);
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: "There was an error while executing this command!" });
+      } else {
+        await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });
+      }
+    }
+  },
+
+  name: "help",
+  description: "Displays a help menu with available commands.",
 };
