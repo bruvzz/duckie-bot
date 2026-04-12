@@ -17,6 +17,7 @@
     "node-cron": "^3.0.3",
     "node-fetch": "^3.3.2",
     "pretty-ms": "^8.0.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "@napi-rs/canvas": "0.1.97"
   }
 }
