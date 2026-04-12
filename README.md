@@ -15,7 +15,7 @@
 ---
 
 ## 📜 Changelog
-**Last Updated:** `February 3, 2026 // 8:35 PM (EDT)`
+**Last Updated:** `April 12, 2026 // 1:05 AM (EDT)`
 
 > [!IMPORTANT]  
 > This bot is built with **discord.js v14.11.0**.
