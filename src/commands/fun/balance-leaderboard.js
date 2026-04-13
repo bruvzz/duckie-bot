@@ -11,16 +11,30 @@ const fs = require("fs");
 const path = require("path");
 
 const dbPath = path.resolve(__dirname, "../economy.json");
+const REQUIRED_ROLE_ID = "";
 
-function getSortedLeaderboard() {
+async function getSortedLeaderboard(interaction) {
+    if (!fs.existsSync(dbPath)) return [];
+    
     const db = JSON.parse(fs.readFileSync(dbPath, "utf8"));
+
+    await interaction.guild.members.fetch();
+
     const sorted = Object.entries(db)
+        .filter(([id, data]) => {
+            const balance = data.balance || 0;
+            if (balance <= 0) return false;
+
+            const member = interaction.guild.members.cache.get(id);
+            return member && member.roles.cache.has(REQUIRED_ROLE_ID);
+        })
         .sort(([, a], [, b]) => (b.balance || 0) - (a.balance || 0))
         .map(([id, data], index) => ({
             id,
             balance: data.balance || 0,
             position: index + 1,
         }));
+        
     return sorted;
 }
 
@@ -28,15 +42,15 @@ function createEmbedPage(sorted, page, totalPages, interaction) {
     const start = (page - 1) * 10;
     const pageData = sorted.slice(start, start + 10);
     const description = pageData
-        .map((entry, i) => `#${entry.position} <@${entry.id}> — **$${entry.balance}**`)
+        .map((entry, i) => `**#${entry.position}** <@${entry.id}> — \`$${entry.balance.toLocaleString()}\``)
         .join("\n");
 
     return new EmbedBuilder()
         .setColor("Grey")
         .setTitle("Balance Leaderboard")
-        .setDescription(description || "No users found.")
+        .setDescription(description || "*No eligible users found with a balance.*")
         .setFooter({
-            text: `Page ${page} of ${totalPages} • Requested by ${interaction.user.tag}`,
+            text: `Page ${page} of ${totalPages} • Total: ${sorted.length} users`,
             iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
         })
         .setTimestamp();
@@ -44,7 +58,7 @@ function createEmbedPage(sorted, page, totalPages, interaction) {
 
 module.exports = {
     name: "balance-leaderboard",
-    description: "View the top users by balance.",
+    description: "View the top staff members by balance.",
 
     /**
      * @param {Client} client
@@ -53,7 +67,7 @@ module.exports = {
     callback: async (client, interaction) => {
         await interaction.deferReply();
 
-        const sorted = getSortedLeaderboard();
+        const sorted = await getSortedLeaderboard(interaction);
         const totalPages = Math.ceil(sorted.length / 10) || 1;
         let currentPage = 1;
 
@@ -114,7 +128,7 @@ module.exports = {
                     .setStyle(ButtonStyle.Secondary)
                     .setDisabled(true)
             );
-            await interaction.editReply({ components: [disabledComponents] });
+            await interaction.editReply({ components: [disabledComponents] }).catch(() => {});
         });
     },
 };
